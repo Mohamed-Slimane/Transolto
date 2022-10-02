@@ -3,6 +3,8 @@ import polib as polib
 
 import wx
 from deep_translator import GoogleTranslator
+from wx.adv import HyperlinkCtrl
+from wx.lib.agw import hyperlink
 
 MAIN_WINDOW_ID = wx.Window.NewControlId()
 MAIN_FRAME_ID = wx.Window.NewControlId()
@@ -22,17 +24,13 @@ FILE_MENU_ID = wx.Window.NewControlId()
 BTN_OPEN_FILE_ID = wx.Window.NewControlId()
 BTN_SAVE_FILE_ID = wx.Window.NewControlId()
 BTN_CLOSE_APP_ID = wx.Window.NewControlId()
+BTN_ABOUT_ID = wx.Window.NewControlId()
 
 TRANS_MENU_ID = wx.Window.NewControlId()
 BTN_TRANS_ID = wx.Window.NewControlId()
 
 SETTINGS_MENU_ID = wx.Window.NewControlId()
 BTN_SETTINGS_ID = wx.Window.NewControlId()
-
-
-def download_window(event):
-    settings_frame = SettingWindow(parent=main_frame, id=2)
-    settings_frame.Show()
 
 
 class MainWindow(wx.Frame):
@@ -70,6 +68,9 @@ class MainWindow(wx.Frame):
 
         self.file_menu.Append(BTN_CLOSE_APP_ID, "Exit", "")
         self.Bind(wx.EVT_MENU, self.close_app, None, BTN_CLOSE_APP_ID)
+
+        self.file_menu.Append(BTN_ABOUT_ID, "About", "")
+        self.Bind(wx.EVT_MENU, self.about_window, None, BTN_ABOUT_ID)
         # End File Menu
 
         # File Menu
@@ -288,9 +289,10 @@ class MainWindow(wx.Frame):
                 for row in range(self.table.GetItemCount()):
                     source_text = self.table.GetItem(row, 1).GetText()
                     # ترجمة جوجل
-                    translated = GoogleTranslator(source='auto', target=self.target_language).translate(str(source_text))
+                    translated = GoogleTranslator(source='auto', target=self.target_language).translate(
+                        str(source_text))
                     self.table.SetItem(row, 2, str(translated))
-                    self.table.Select(row-1, 0)
+                    self.table.Select(row - 1, 0)
                     self.table.Select(row)
                     self.table.Layout()
                     self.table.Update()
@@ -301,13 +303,35 @@ class MainWindow(wx.Frame):
         except Exception as e:
             wx.MessageDialog(None, str(e), 'Error', wx.OK | wx.ICON_ERROR).ShowModal()
 
+    def about_window(self, event):
+        # wx.MessageBox('With ♥ by Dever', 'About', wx.OK | wx.ICON_INFORMATION)
+        dlg = AboutWindow(self, wx.ID_ANY, title='About')
+        dlg.ShowModal()
 
-class SettingWindow(wx.Frame):
 
-    def __init__(self, parent, id):
-        wx.Frame.__init__(self, parent, id, 'Settings', size=(600, 400))
-        wx.Frame.CenterOnScreen(self)
-        # self.new.Show(False)
+class AboutWindow(wx.Dialog):
+
+    def __init__(self, *args, **kwds):
+        kwds["style"] = kwds.get("style", 0) | wx.DEFAULT_DIALOG_STYLE
+        wx.Dialog.__init__(self, *args, **kwds)
+        # using wx.adv.HyperlinkCtrl
+        self.text = wx.StaticText(self, label='Transolto V1.0')
+        self.hyperlink_1 = HyperlinkCtrl(self, wx.ID_ANY, "With ♥ by Dever", "https://de-ver.com/")
+
+        self.__set_properties()
+        self.__do_layout()
+
+    def __set_properties(self):
+        self.SetSize((400, 100))
+        self.text.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, ""))
+        self.hyperlink_1.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, ""))
+
+    def __do_layout(self):
+        grid_sizer_7 = wx.BoxSizer()
+        grid_sizer_7.Add(self.text, 0, wx.CENTER | wx.ALL, 5)
+        grid_sizer_7.Add(self.hyperlink_1, 0, wx.CENTER, 0)
+        self.SetSizer(grid_sizer_7)
+        self.Layout()
 
 
 app = wx.PySimpleApp()
