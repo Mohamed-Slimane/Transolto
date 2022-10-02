@@ -23,6 +23,9 @@ BTN_OPEN_FILE_ID = wx.Window.NewControlId()
 BTN_SAVE_FILE_ID = wx.Window.NewControlId()
 BTN_CLOSE_APP_ID = wx.Window.NewControlId()
 
+TRANS_MENU_ID = wx.Window.NewControlId()
+BTN_TRANS_ID = wx.Window.NewControlId()
+
 SETTINGS_MENU_ID = wx.Window.NewControlId()
 BTN_SETTINGS_ID = wx.Window.NewControlId()
 
@@ -67,8 +70,12 @@ class MainWindow(wx.Frame):
 
         self.file_menu.Append(BTN_CLOSE_APP_ID, "Exit", "")
         self.Bind(wx.EVT_MENU, self.close_app, None, BTN_CLOSE_APP_ID)
-
         # End File Menu
+
+        # File Menu
+        self.trans_menu = wx.Menu()
+        self.trans_menu.Append(BTN_TRANS_ID, "Pre-translate", "Robot translate with google translate")
+        self.Bind(wx.EVT_MENU, self.PreTrans, id=BTN_TRANS_ID)
 
         # App
         self.control_panel = wx.Panel(self.panel)
@@ -132,6 +139,7 @@ class MainWindow(wx.Frame):
 
         # Menubar appends
         menubar.Append(self.file_menu, "File")
+        menubar.Append(self.trans_menu, "Translate")
         self.SetMenuBar(menubar)
         # End Menubar appends
 
@@ -272,6 +280,26 @@ class MainWindow(wx.Frame):
         text = event.GetString()
         if self.target_index != 'empty':
             self.table.SetItem(self.target_index, 2, text)
+
+    def PreTrans(self, event):
+        try:
+            if self.table.GetItemCount() > 0:
+                # عمل لوب للبيانات من الجدول
+                for row in range(self.table.GetItemCount()):
+                    source_text = self.table.GetItem(row, 1).GetText()
+                    # ترجمة جوجل
+                    translated = GoogleTranslator(source='auto', target=self.target_language).translate(str(source_text))
+                    self.table.SetItem(row, 2, str(translated))
+                    self.table.Select(row-1, 0)
+                    self.table.Select(row)
+                    self.table.Layout()
+                    self.table.Update()
+                    self.table.Refresh()
+                wx.MessageDialog(None, 'Pre-Translate completed', 'Success', wx.OK | wx.ICON_INFORMATION).ShowModal()
+            else:
+                wx.MessageDialog(None, 'No text to translate', 'Error', wx.OK | wx.ICON_ERROR).ShowModal()
+        except Exception as e:
+            wx.MessageDialog(None, str(e), 'Error', wx.OK | wx.ICON_ERROR).ShowModal()
 
 
 class SettingWindow(wx.Frame):
