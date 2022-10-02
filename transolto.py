@@ -37,6 +37,9 @@ class MainWindow(wx.Frame):
 
     def __init__(self, parent, id):
         wx.Frame.__init__(self, parent, id, 'Transolto', size=(900, 700))
+        icon = wx.EmptyIcon()
+        icon.CopyFromBitmap(wx.Bitmap("images/icon.ico", wx.BITMAP_TYPE_ANY))
+        self.SetIcon(icon)
         self.target_language = 'en'
         self.trans = None
         self.file_path = None
@@ -68,15 +71,17 @@ class MainWindow(wx.Frame):
 
         self.file_menu.Append(BTN_CLOSE_APP_ID, "Exit", "")
         self.Bind(wx.EVT_MENU, self.close_app, None, BTN_CLOSE_APP_ID)
-
-        self.file_menu.Append(BTN_ABOUT_ID, "About", "")
-        self.Bind(wx.EVT_MENU, self.about_window, None, BTN_ABOUT_ID)
         # End File Menu
 
         # File Menu
         self.trans_menu = wx.Menu()
         self.trans_menu.Append(BTN_TRANS_ID, "Pre-translate", "Robot translate with google translate")
         self.Bind(wx.EVT_MENU, self.PreTrans, id=BTN_TRANS_ID)
+
+        # About
+        self.about_menu = wx.Menu()
+        self.about_menu.Append(BTN_ABOUT_ID, "Transolto", "")
+        self.Bind(wx.EVT_MENU, self.about_window, id=BTN_ABOUT_ID)
 
         # App
         self.control_panel = wx.Panel(self.panel)
@@ -141,6 +146,7 @@ class MainWindow(wx.Frame):
         # Menubar appends
         menubar.Append(self.file_menu, "File")
         menubar.Append(self.trans_menu, "Translate")
+        menubar.Append(self.about_menu, "About")
         self.SetMenuBar(menubar)
         # End Menubar appends
 
@@ -315,21 +321,24 @@ class AboutWindow(wx.Dialog):
         kwds["style"] = kwds.get("style", 0) | wx.DEFAULT_DIALOG_STYLE
         wx.Dialog.__init__(self, *args, **kwds)
         # using wx.adv.HyperlinkCtrl
-        self.text = wx.StaticText(self, label='Transolto V1.0')
-        self.hyperlink_1 = HyperlinkCtrl(self, wx.ID_ANY, "With ♥ by Dever", "https://de-ver.com/")
+        self.transolto = HyperlinkCtrl(self, wx.ID_ANY, "Transolto", "http://ufly.cc/692fef45")
+        self.text = wx.StaticText(self, label='V1.0 with ♥ by')
+        self.dever = HyperlinkCtrl(self, wx.ID_ANY, "Dever", "http://ufly.cc/dever")
 
         self.__set_properties()
         self.__do_layout()
 
     def __set_properties(self):
         self.SetSize((400, 100))
+        self.transolto.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, ""))
         self.text.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, ""))
-        self.hyperlink_1.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, ""))
+        self.dever.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 0, ""))
 
     def __do_layout(self):
         grid_sizer_7 = wx.BoxSizer()
-        grid_sizer_7.Add(self.text, 0, wx.CENTER | wx.ALL, 5)
-        grid_sizer_7.Add(self.hyperlink_1, 0, wx.CENTER, 0)
+        grid_sizer_7.Add(self.transolto, 0, wx.CENTER | wx.ALL, 5)
+        grid_sizer_7.Add(self.text, 0, wx.CENTER, 0)
+        grid_sizer_7.Add(self.dever, 0, wx.CENTER | wx.ALL, 5)
         self.SetSizer(grid_sizer_7)
         self.Layout()
 
