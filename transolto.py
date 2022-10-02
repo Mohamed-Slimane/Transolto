@@ -257,7 +257,7 @@ class MainWindow(wx.Frame):
             # إنشاء حقل النص المترجم في الشريط الجانبي
             self.trans = wx.StaticText(self.secondary_panel, label=str(translated))
             self.trans.Wrap(self.secondary_panel.Size[0] - 10)
-            self.secondary_rsz.Add(self.trans, 0, wx.EXPAND | wx.ALL, 50)
+            self.secondary_rsz.Add(self.trans, 0, wx.EXPAND | wx.ALL, 5)
             self.panel.Layout()
             self.trans.Bind(wx.EVT_LEFT_DOWN, self.onTansBtn)
 
