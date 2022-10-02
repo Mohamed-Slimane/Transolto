@@ -26,5 +26,7 @@ Then install the project dependencies with
 ```
 pip install -r requirements.txt
 ```
+
+## Preview
 ![image](https://user-images.githubusercontent.com/23380229/193461267-534c7291-aa6a-4b42-a6e3-52bc22e80568.png)
 
