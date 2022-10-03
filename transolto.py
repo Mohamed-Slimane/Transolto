@@ -1,3 +1,6 @@
+import os
+import sys
+
 import keyboard as keyboard
 import polib as polib
 
@@ -38,7 +41,15 @@ class MainWindow(wx.Frame):
     def __init__(self, parent, id):
         wx.Frame.__init__(self, parent, id, 'Transolto', size=(900, 700))
         icon = wx.EmptyIcon()
-        icon.CopyFromBitmap(wx.Bitmap("images/icon.ico", wx.BITMAP_TYPE_ANY))
+        if getattr(sys, 'frozen', False):
+            # If the application is run as a bundle, the PyInstaller bootloader
+            # extends the sys module by a flag frozen=True and sets the app
+            # path into variable _MEIPASS'.
+            application_path = sys._MEIPASS
+        else:
+            application_path = os.path.dirname(os.path.abspath(__file__))
+
+        icon.CopyFromBitmap(wx.Bitmap(application_path + "\images\icon.ico", wx.BITMAP_TYPE_ANY))
         self.SetIcon(icon)
         self.target_language = 'en'
         self.trans = None
