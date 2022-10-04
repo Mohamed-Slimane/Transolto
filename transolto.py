@@ -304,16 +304,18 @@ class MainWindow(wx.Frame):
             if self.table.GetItemCount() > 0:
                 # عمل لوب للبيانات من الجدول
                 for row in range(self.table.GetItemCount()):
-                    source_text = self.table.GetItem(row, 1).GetText()
-                    # ترجمة جوجل
-                    translated = GoogleTranslator(source='auto', target=self.target_language).translate(
-                        str(source_text))
-                    self.table.SetItem(row, 2, str(translated))
-                    self.table.Select(row - 1, 0)
-                    self.table.Select(row)
-                    self.table.Layout()
-                    self.table.Update()
-                    self.table.Refresh()
+                    target_text = self.table.GetItem(row, 2).GetText()
+                    if not target_text:
+                        source_text = self.table.GetItem(row, 1).GetText()
+                        # ترجمة جوجل
+                        translated = GoogleTranslator(source='auto', target=self.target_language).translate(
+                            str(source_text))
+                        self.table.SetItem(row, 2, str(translated))
+                        self.table.Select(row - 1, 0)
+                        self.table.Select(row)
+                        self.table.Layout()
+                        self.table.Update()
+                        self.table.Refresh()
                 wx.MessageDialog(None, 'Pre-Translate completed', 'Success', wx.OK | wx.ICON_INFORMATION).ShowModal()
             else:
                 wx.MessageDialog(None, 'No text to translate', 'Error', wx.OK | wx.ICON_ERROR).ShowModal()
