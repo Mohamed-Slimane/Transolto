@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 import keyboard as keyboard
 import polib as polib
@@ -128,7 +129,7 @@ class MainWindow(wx.Frame):
         # عناصر الجداول
 
         # جدول الكلمات
-        self.table = wx.ListCtrl(self.primary_panel, style=wx.LC_REPORT | wx.BORDER)
+        self.table = wx.ListCtrl(self.primary_panel, style=wx.LC_REPORT)
         self.table.InsertColumn(0, ".", width=20)
         self.table.InsertColumn(1, "Text")
         self.table.InsertColumn(2, "Translation", format=wx.LIST_FORMAT_RIGHT)
@@ -219,37 +220,52 @@ class MainWindow(wx.Frame):
             wx.MessageDialog(None, str(e), 'Error', wx.OK | wx.ICON_ERROR).ShowModal()
 
     def save_file(self, event):
+        dial = wx.MessageDialog(None, 'Are you sure to save?', 'Close', wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION)
+        ret = dial.ShowModal()
+        if ret == wx.ID_YES:
+            try:
+                # قتح الملف القديم الذي يجري التعديل عليه
+                po_file = polib.pofile(self.file_path, encoding='utf8')
 
-        try:
-            # قتح الملف القديم الذي يجري التعديل عليه
-            po_file = polib.pofile(self.file_path, encoding='utf8')
+                # إنشاء ملف جديد للكتابة عليه
+                new_po = polib.POFile()
+                # حقن المعلومات في الملف الجديد
+                new_po.metadata = po_file.metadata
 
-            # إنشاء ملف جديد للكتابة عليه
-            new_po = polib.POFile()
-            # حقن المعلومات في الملف الجديد
-            new_po.metadata = po_file.metadata
+                # عمل لوب للبيانات من الجدول وحقنها في الملف الجديد
+                for row in range(self.table.GetItemCount()):
+                    entry = polib.POEntry(
+                        msgid=u'{}'.format(self.table.GetItem(row, 1).GetText()),
+                        msgstr=u'{}'.format(self.table.GetItem(row, 2).GetText()),
+                    )
+                    new_po.append(entry)
 
-            # عمل لوب للبيانات من الجدول وحقنها في الملف الجديد
-            for row in range(self.table.GetItemCount()):
-                entry = polib.POEntry(
-                    msgid=u'{}'.format(self.table.GetItem(row, 1).GetText()),
-                    msgstr=u'{}'.format(self.table.GetItem(row, 2).GetText()),
-                )
-                new_po.append(entry)
-
-            # حفظ الملف الجديد بصيغة PO
-            new_po.save(self.file_path)
-            # حفظ الملف الجديد بصيغة MO
-            new_po.save_as_mofile(self.file_path.replace('.po', '.mo'))
-            self.Layout()
-        except Exception as e:
-            wx.MessageDialog(None, str(e), 'Error', wx.OK | wx.ICON_ERROR).ShowModal()
+                # حفظ الملف الجديد بصيغة PO
+                new_po.save(self.file_path)
+                # حفظ الملف الجديد بصيغة MO
+                new_po.save_as_mofile(self.file_path.replace('.po', '.mo'))
+                self.Layout()
+            except Exception as e:
+                wx.MessageDialog(None, str(e), 'Error', wx.OK | wx.ICON_ERROR).ShowModal()
 
     def on_key_down(self, event):
-        if keyboard.is_pressed('ctrl+s'):
+        if keyboard.is_pressed('ctrl+s') and self.table.GetItemCount() > 0:
             self.save_file(self)
         elif keyboard.is_pressed('ctrl+o'):
             self.open_file(self)
+        elif keyboard.is_pressed('ctrl+enter') and self.table.GetItemCount() > 0:
+            fist_empty = None
+            for row in range(self.table.GetItemCount()):
+                target_text = self.table.GetItem(row, 2).GetText()
+                if not target_text:
+                    fist_empty = row
+                    break
+            if fist_empty:
+                for row in range(self.table.GetItemCount()):
+                    self.table.Select(row, 0)
+                self.table.Select(fist_empty)
+        elif keyboard.is_pressed('alt+f4'):
+            self.close_app(self)
         else:
             event.Skip()
 
@@ -300,27 +316,30 @@ class MainWindow(wx.Frame):
             self.table.SetItem(self.target_index, 2, text)
 
     def PreTrans(self, event):
-        try:
-            if self.table.GetItemCount() > 0:
-                # عمل لوب للبيانات من الجدول
-                for row in range(self.table.GetItemCount()):
-                    target_text = self.table.GetItem(row, 2).GetText()
-                    if not target_text:
-                        source_text = self.table.GetItem(row, 1).GetText()
-                        # ترجمة جوجل
-                        translated = GoogleTranslator(source='auto', target=self.target_language).translate(
-                            str(source_text))
-                        self.table.SetItem(row, 2, str(translated))
-                        self.table.Select(row - 1, 0)
-                        self.table.Select(row)
-                        self.table.Layout()
-                        self.table.Update()
-                        self.table.Refresh()
-                wx.MessageDialog(None, 'Pre-Translate completed', 'Success', wx.OK | wx.ICON_INFORMATION).ShowModal()
-            else:
-                wx.MessageDialog(None, 'No text to translate', 'Error', wx.OK | wx.ICON_ERROR).ShowModal()
-        except Exception as e:
-            wx.MessageDialog(None, str(e), 'Error', wx.OK | wx.ICON_ERROR).ShowModal()
+        dial = wx.MessageDialog(None, 'Are you sure to start?', 'Close', wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION)
+        ret = dial.ShowModal()
+        if ret == wx.ID_YES:
+            try:
+                if self.table.GetItemCount() > 0:
+                    # عمل لوب للبيانات من الجدول
+                    for row in range(self.table.GetItemCount()):
+                        target_text = self.table.GetItem(row, 2).GetText()
+                        if not target_text:
+                            source_text = self.table.GetItem(row, 1).GetText()
+                            # ترجمة جوجل
+                            translated = GoogleTranslator(source='auto', target=self.target_language).translate(
+                                str(source_text))
+                            self.table.SetItem(row, 2, str(translated))
+                            # self.table.Select(row - 1, 0)
+                            self.table.Select(row)
+                            self.table.Layout()
+                            self.table.Update()
+                            self.table.Refresh()
+                    wx.MessageDialog(None, 'Pre-Translate completed', 'Success', wx.OK | wx.ICON_INFORMATION).ShowModal()
+                else:
+                    wx.MessageDialog(None, 'No text to translate', 'Error', wx.OK | wx.ICON_ERROR).ShowModal()
+            except Exception as e:
+                wx.MessageDialog(None, str(e), 'Error', wx.OK | wx.ICON_ERROR).ShowModal()
 
     def about_window(self, event):
         # wx.MessageBox('With ♥ by Dever', 'About', wx.OK | wx.ICON_INFORMATION)
